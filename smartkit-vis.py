@@ -5,8 +5,11 @@ import ttk
 
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+
+import smartkitdata
+
 
 class smartkitapp(object):
     """
@@ -17,11 +20,36 @@ class smartkitapp(object):
 
         :return:
         """
+        self.cur_tab = 0
+        self.nr_tabs = 2
 
+        self.init_data()
         self.init_window()
         self.init_notebook()
         self.init_plot()
+        self.init_bar()
+        self.init_stats()
+
+        self.update_loop()
         tk.mainloop()
+
+    def leftKey(self, event):
+        new_tab = self.cur_tab -1 if self.cur_tab > 0 else self.nr_tabs
+        self.cur_tab = new_tab
+        self.notebook.select(new_tab)
+
+    def rightKey(self, event):
+        new_tab = self.cur_tab +1 if self.cur_tab < self.nr_tabs else 0
+        self.cur_tab = new_tab
+        self.notebook.select(new_tab)
+
+
+    def init_data(self):
+        """
+        Initialises connection to data object
+        :return:
+        """
+        self.data = smartkitdata.smartkitdata()
 
     def init_window(self):
         """
@@ -31,21 +59,111 @@ class smartkitapp(object):
         self.root = tk.Tk()
         self.root.geometry("800x600")
 
+        self.root.bind('<Left>', self.leftKey)
+        self.root.bind('<Right>', self.rightKey)
+
     def init_notebook(self):
+        """
+        Initialises notebook
+        :return:
+        """
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
     def init_plot(self):
+        """
+        Initialises plot
+        :return:
+        """
         self.fr_plot = tk.Frame()
         self.notebook.add(self.fr_plot, text="Plot")
 
-        f = Figure(figsize=(5,5), dpi=100)
-        a = f.add_subplot(111)
-        a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,8,9,3,5])
+        self.fig = Figure()
+        self.plot = self.fig.add_subplot(111)
 
-        canvas = FigureCanvasTkAgg(f, self.fr_plot)
-        canvas.show()
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        self.canvas = FigureCanvasTkAgg(self.fig, self.fr_plot)
+        self.canvas.show()
+        self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+    def init_bar(self):
+        """
+        Initialises plot
+        :return:
+        """
+        self.fr_bar = tk.Frame()
+        self.notebook.add(self.fr_bar, text="Barplot")
+
+        self.fig_bar = Figure()
+        self.plot_bar = self.fig_bar.add_subplot(111)
+
+        self.canvas_bar = FigureCanvasTkAgg(self.fig_bar, self.fr_bar)
+        self.canvas_bar.show()
+        self.canvas_bar.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+    def init_stats(self):
+        """
+        Initialises statistics tab
+        :return:
+        """
+        self.fr_stats = tk.Frame(bd=1)
+        self.notebook.add(self.fr_stats, text="Statistics")
+
+        tk.Label(self.fr_stats, text="Statistics").grid(row=1, column=1, columnspan=8, sticky="WE")
+
+        self.stringvars = list()
+        for i in range(4):
+            self.stringvars.append(list())
+            for j in range(5):
+                self.stringvars[i].append(tk.StringVar())
+                tk.Label(self.fr_stats, textvariable=self.stringvars[i][j], width=10).grid(row=j+3, column=2*i+2)
+            tk.Label(self.fr_stats, text="Sensor %d" % i).grid(row=2, column=2*i+1, columnspan=2)
+            tk.Label(self.fr_stats, text="Mean").grid(row=3, column=2*i+1)
+            tk.Label(self.fr_stats, text="StDev").grid(row=4, column=2*i+1)
+            tk.Label(self.fr_stats, text="Min").grid(row=5, column=2*i+1)
+            tk.Label(self.fr_stats, text="Max").grid(row=6, column=2*i+1)
+
+    def update_data(self):
+        self.data.update_data()
+
+    def update_loop(self):
+        """
+        Updates all notebook tabs
+        :return:
+        """
+        self.update_data()
+        self.update_plot()
+        self.update_bar()
+        self.update_stats()
+
+        self.root.after(100, self.update_loop)
+
+    def update_plot(self):
+        """
+        Updates plot tab
+        :return:
+        """
+        self.plot.clear()
+        self.data.get_data().plot(ax=self.plot)
+        self.canvas.show()
+
+    def update_bar(self):
+        """
+        Updates plot tab
+        :return:
+        """
+        self.plot_bar.clear()
+        self.data.get_data().plot(ax=self.plot_bar, kind="bar")
+        self.canvas_bar.show()
+
+
+
+    def update_stats(self):
+        data = self.data.get_data()
+        for i in range(4):
+            self.stringvars[i][0].set("{0:.2f}".format(data.ix[:,i].mean()))
+            self.stringvars[i][1].set("{0:.2f}".format(data.ix[:,i].std()))
+            self.stringvars[i][2].set("{0:.2f}".format(data.ix[:,i].min()))
+            self.stringvars[i][3].set("{0:.2f}".format(data.ix[:,i].max()))
 
 
 if __name__ == "__main__":
