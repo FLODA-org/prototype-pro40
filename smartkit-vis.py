@@ -4,12 +4,13 @@ import Tkinter as tk
 import ttk
 
 import matplotlib
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 import smartkitdata
 
+
+matplotlib.use("TkAgg")
 
 class smartkitapp(object):
     """
@@ -123,6 +124,10 @@ class smartkitapp(object):
             tk.Label(self.fr_stats, text="Max").grid(row=6, column=2*i+1)
 
     def update_data(self):
+        """
+        Gets new data into data object
+        :return:
+        """
         self.data.update_data()
 
     def update_loop(self):
@@ -148,7 +153,7 @@ class smartkitapp(object):
 
     def update_bar(self):
         """
-        Updates plot tab
+        Updates barplot
         :return:
         """
         self.plot_bar.clear()
@@ -156,8 +161,11 @@ class smartkitapp(object):
         self.canvas_bar.show()
 
 
-
     def update_stats(self):
+        """
+        Updates statistics tab
+        :return:
+        """
         data = self.data.get_data()
         for i in range(4):
             self.stringvars[i][0].set("{0:.2f}".format(data.ix[:,i].mean()))
