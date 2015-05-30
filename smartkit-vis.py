@@ -7,7 +7,9 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+# Switch between random data and arduino as data source
 import smartkitdata
+import smartkitdata_testfirmata as smartkitdata
 
 
 matplotlib.use("TkAgg")
@@ -106,6 +108,7 @@ class smartkitapp(object):
         Initialises statistics tab
         :return:
         """
+
         self.fr_stats = tk.Frame(bd=1)
         self.notebook.add(self.fr_stats, text="Statistics")
 
@@ -140,7 +143,7 @@ class smartkitapp(object):
         self.update_bar()
         self.update_stats()
 
-        self.root.after(100, self.update_loop)
+        self.root.after(0, self.update_loop)
 
     def update_plot(self):
         """
@@ -167,7 +170,7 @@ class smartkitapp(object):
         :return:
         """
         data = self.data.get_data()
-        for i in range(4):
+        for i in range(data.shape[1]):
             self.stringvars[i][0].set("{0:.2f}".format(data.ix[:,i].mean()))
             self.stringvars[i][1].set("{0:.2f}".format(data.ix[:,i].std()))
             self.stringvars[i][2].set("{0:.2f}".format(data.ix[:,i].min()))
