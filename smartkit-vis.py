@@ -7,9 +7,9 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-# Switch between random data and arduino as data source
+#Switch between random data and arduino as data source
 import smartkitdata
-import smartkitdata_testfirmata as smartkitdata
+#import smartkitdata_testfirmata as smartkitdata
 
 
 matplotlib.use("TkAgg")
@@ -30,6 +30,7 @@ class smartkitapp(object):
         self.init_window()
         self.init_notebook()
         self.init_plot()
+        self.init_plot_smooth()
         self.init_bar()
         self.init_stats()
 
@@ -88,6 +89,21 @@ class smartkitapp(object):
         self.canvas.show()
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
+    def init_plot_smooth(self):
+        """
+        Initialises plot
+        :return:
+        """
+        self.fr_plot_smooth = tk.Frame()
+        self.notebook.add(self.fr_plot_smooth, text="Smooth Plot")
+
+        self.fig_smooth = Figure()
+        self.plot_smooth = self.fig_smooth.add_subplot(111)
+
+        self.canvas_smooth = FigureCanvasTkAgg(self.fig_smooth, self.fr_plot_smooth)
+        self.canvas_smooth.show()
+        self.canvas_smooth.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
     def init_bar(self):
         """
         Initialises plot
@@ -140,6 +156,7 @@ class smartkitapp(object):
         """
         self.update_data()
         self.update_plot()
+        self.update_plot_smooth()
         self.update_bar()
         self.update_stats()
 
@@ -153,6 +170,15 @@ class smartkitapp(object):
         self.plot.clear()
         self.data.get_data().plot(ax=self.plot)
         self.canvas.show()
+
+    def update_plot_smooth(self):
+        """
+        Updates plot tab
+        :return:
+        """
+        self.plot_smooth.clear()
+        self.data.get_data_smooth().plot(ax=self.plot_smooth)
+        self.canvas_smooth.show()
 
     def update_bar(self):
         """
